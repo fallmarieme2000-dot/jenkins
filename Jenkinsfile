@@ -35,7 +35,7 @@ pipeline {
         stage('Install dependencies - Backend') {
             steps {
                 dir('back-end') {
-                    sh 'npm install'
+                    bat 'npm install'
                 }
             }
         }
@@ -43,7 +43,7 @@ pipeline {
         stage('Install dependencies - Frontend') {
             steps {
                 dir('front-end') {
-                    sh 'npm install'
+                    bat 'npm install'
                 }
             }
         }
@@ -51,8 +51,8 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    sh 'cd back-end && npm test || echo "Aucun test backend"'
-                    sh 'cd front-end && npm test || echo "Aucun test frontend"'
+                    bat 'cd back-end && npm test || echo "Aucun test backend"'
+                    bat 'cd front-end && npm test || echo "Aucun test frontend"'
                 }
             }
         }
@@ -60,8 +60,8 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    sh "docker build -t $DOCKER_HUB_USER/$FRONT_IMAGE:latest ./front-end"
-                    sh "docker build -t $DOCKER_HUB_USER/$BACK_IMAGE:latest ./back-end"
+                    bat "docker build -t $DOCKER_HUB_USER/$FRONT_IMAGE:latest ./front-end"
+                    bat "docker build -t $DOCKER_HUB_USER/$BACK_IMAGE:latest ./back-end"
                 }
             }
         }
@@ -69,7 +69,7 @@ pipeline {
         stage('Push Docker Images') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
+                    bat '''
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker push $DOCKER_USER/react-frontend:latest
                         docker push $DOCKER_USER/express-backend:latest
@@ -81,33 +81,33 @@ pipeline {
         // on supprime les conteneur inactif dans docker container
         stage('Clean Docker') {
             steps {
-                sh 'docker container prune -f'
-                sh 'docker image prune -f'
+                bat 'docker container prune -f'
+                bat 'docker image prune -f'
             }
         }
 
         stage('Check Docker & Compose') {
             steps {
-                sh 'docker --version'
-                sh 'docker-compose --version || echo "docker-compose non trouvé"'
+                bat 'docker --version'
+                bat 'docker-compose --version || echo "docker-compose non trouvé"'
             }
         }
 
         stage('Deploy (compose.yaml)') {
             steps {
                 dir('.') {  
-                    sh 'docker-compose -f compose.yaml down || true'
-                    sh 'docker-compose -f compose.yaml pull'
-                    sh 'docker-compose -f compose.yaml up -d'
-                    sh 'docker-compose -f compose.yaml ps'
-                    sh 'docker-compose -f compose.yaml logs --tail=50'
+                    bat 'docker-compose -f compose.yaml down || true'
+                    bat 'docker-compose -f compose.yaml pull'
+                    bat 'docker-compose -f compose.yaml up -d'
+                    bat 'docker-compose -f compose.yaml ps'
+                    bat 'docker-compose -f compose.yaml logs --tail=50'
                 }
             }
         }
 
         stage('Smoke Test') {
             steps {
-                sh '''
+                bat '''
                     echo " Vérification Frontend (port 5173)..."
                     curl -f http://localhost:5173 || echo "Frontend unreachable"
 
