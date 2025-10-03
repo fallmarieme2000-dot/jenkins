@@ -2,4 +2,4 @@
 Projet fulstack simple de gestion de smartphone
 amina est gentille
 slu
-la classe
+la classes
